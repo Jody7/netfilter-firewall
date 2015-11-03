@@ -7,12 +7,15 @@
 #include <linux/vmalloc.h>
 #include <linux/netfilter_ipv4.h>
 #include <linux/ip.h>
+#include <linux/tcp.h>
+#include <linux/inet.h>
 
 
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Jody");
 MODULE_DESCRIPTION("Netfilter Firewall Module");
+
 
 static char BLOCKED_IP[16] = "192.168.1.1"; 
 
@@ -38,11 +41,21 @@ static void ip_conv(int ip)
 unsigned int hook_v(unsigned int hooknum, struct sk_buff *skb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff *))  {
 
     struct iphdr *ip_header = (struct iphdr *)skb_network_header(skb);
+    
 
+if(ip_header->protocol == IPPROTO_TCP){
     unsigned int src_ip = (unsigned int)ip_header->saddr;
-      
+    unsigned int src_p, dest_p;
+
+
+     struct tcphdr *tcp_header = (struct tcphdr *)((__u32 *)ip_header+ ip_header->ihl);
+    
     ip_conv(src_ip);
-    printk("Packet entered! Src IP:%s\n", ip_holder);
+
+    src_p = htons((unsigned short int) tcp_header->source);
+    dest_p = htons((unsigned short int) tcp_header->dest);
+
+    printk("Packet entered! Src IP:%s SrcPort:%hu DestPort:%hu \n", ip_holder, src_p, dest_p);
 
     
 
@@ -53,7 +66,11 @@ unsigned int hook_v(unsigned int hooknum, struct sk_buff *skb, const struct net_
 
     }
     
-    
+} else {
+printk("Packet other than TCP came in.\n");
+}
+
+
     return NF_ACCEPT;
 }
 
