@@ -9,22 +9,49 @@
 #include <linux/ip.h>
 
 
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Jody");
 MODULE_DESCRIPTION("Netfilter Firewall Module");
 
+static char BLOCKED_IP[16] = "192.168.1.1"; 
+
 static struct nf_hook_ops nfho;
 static inline unsigned char *skb_network_header(const struct sk_buff *skb);
 
+static char ip_holder[16];
+
+static void ip_conv(int ip)
+{
+  static char res[16];
+  sprintf(res, "%d.%d.%d.%d",
+    ip & 0xFF,
+    (ip >> 8)  & 0xFF,
+    (ip >> 16) & 0xFF,
+    (ip >> 24) & 0xFF);
+
+  strcpy(ip_holder, res);
+
+}
 
 
 unsigned int hook_v(unsigned int hooknum, struct sk_buff *skb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff *))  {
-    //A lot of params
 
     struct iphdr *ip_header = (struct iphdr *)skb_network_header(skb);
 
-    //unsigned int src_ip = (unsigned int)ip_header->saddr;
-    printk("Packet entered! Source:%pI4\n", &(ip_header->saddr));
+    unsigned int src_ip = (unsigned int)ip_header->saddr;
+      
+    ip_conv(src_ip);
+    printk("Packet entered! Src IP:%s\n", ip_holder);
+
+    
+
+    if(strcmp(ip_holder, BLOCKED_IP) == 0)
+    {
+	printk("Dropping Packet from a blocked IP\n");
+	return NF_DROP;
+
+    }
     
     
     return NF_ACCEPT;
