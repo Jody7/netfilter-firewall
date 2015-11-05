@@ -17,7 +17,7 @@ MODULE_AUTHOR("Jody");
 MODULE_DESCRIPTION("Netfilter Firewall Module");
 
 
-static char BLOCKED_IP[16] = "192.168.1.1"; 
+static char BLOCKED_IP[16] = "140.227.37.40"; 
 
 static struct nf_hook_ops nfho;
 static inline unsigned char *skb_network_header(const struct sk_buff *skb);
