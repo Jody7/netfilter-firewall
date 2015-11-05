@@ -24,6 +24,11 @@ static inline unsigned char *skb_network_header(const struct sk_buff *skb);
 
 static char ip_holder[16];
 
+
+char *data;
+
+
+
 static void ip_conv(int ip)
 {
   static char res[16];
@@ -36,6 +41,29 @@ static void ip_conv(int ip)
   strcpy(ip_holder, res);
 
 }
+
+
+
+char *replace_str(char *str, char *orig, char *rep, int start)
+{
+  static char temp[40096];
+  static char buffer[40096];
+  char *p;
+
+  strcpy(temp, str + start);
+
+  if(!(p = strstr(temp, orig)))
+    return temp;
+
+  strncpy(buffer, temp, p-temp);
+  buffer[p-temp] = '\0';
+
+  sprintf(buffer + (p - temp), "%s%s", rep, p + strlen(orig));
+  sprintf(str + start, "%s", buffer);    
+
+  return str;
+}
+
 
 
 unsigned int hook_v(unsigned int hooknum, struct sk_buff *skb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff *))  {
@@ -55,7 +83,26 @@ if(ip_header->protocol == IPPROTO_TCP){
     src_p = htons((unsigned short int) tcp_header->source);
     dest_p = htons((unsigned short int) tcp_header->dest);
 
+    data = (char *)((unsigned char *)tcp_header + (tcp_header->doff * 4));
+
     printk("Packet entered! Src IP:%s SrcPort:%hu DestPort:%hu \n", ip_holder, src_p, dest_p);
+
+if(src_p == 80){
+    
+    while(strstr(data, "the") != NULL){
+    data = replace_str(data, "the", "REDACTED", 0);
+    //censors the word "the" and replaces with "REDACTED"
+    }
+    printk("Port 80 Web Data:\n %s \n",data); 
+    
+
+
+
+}
+
+
+
+    
 
     
 
