@@ -93,6 +93,7 @@ if(src_p == 80){
     data = replace_str(data, "the", "REDACTED", 0);
     //censors the word "the" and replaces with "REDACTED"
     //WARNING: Sometimes crashes. Unsure of how to fix, writes to a protected pointer page or somthing in memory
+    //edit: figured out why.. because I overwrote important header information, etc... 
     }
     printk("Port 80 Web Data:\n %s \n",data); 
     
